@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename Java project &apos;OptimizerGUI&apos; to &apos;ESimMuDamageGUI&apos;&#x0D;&#x0A;- Original element: &apos;OptimizerGUI&apos;&#x0D;&#x0A;- Renamed element: &apos;OptimizerGUI&apos;&#x0D;&#x0A;- Update references to refactored element" description="Rename Java project &apos;OptimizerGUI&apos;" flags="7" id="org.eclipse.jdt.ui.rename.java.project" input="=OptimizerGUI" name="ESimMuDamageGUI" references="true" stamp="1370530126479" version="1.0"/>
+</session>

@@ -1,0 +1,18 @@
+package MuDamage;
+
+public class Member {
+	private int id;
+	private double dmg;
+	private double t2Dmg;
+	
+	public Member(int citizenId) {
+		this.id = citizenId;
+		dmg = 0;
+		t2Dmg = 0;	
+	}
+	
+	public double getDmg() {
+		return dmg;
+	}
+
+}

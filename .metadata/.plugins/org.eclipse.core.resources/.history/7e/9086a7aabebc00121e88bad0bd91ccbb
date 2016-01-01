@@ -1,0 +1,11 @@
+
+public class MilitaryUnit {
+	
+	private int id;
+	private int dmg;
+	private String name;
+	MilitaryUnit() {
+		
+	}
+
+}

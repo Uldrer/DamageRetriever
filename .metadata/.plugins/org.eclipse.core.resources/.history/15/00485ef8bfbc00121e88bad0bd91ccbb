@@ -1,0 +1,51 @@
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
+public class MuParser {
+	
+	private String baseApiUrl;
+	private String baseCountryUrl;
+	private String pageEndingUrl;
+	private String countryUrl;
+	private String apiUrl;
+	
+	MuParser(int countryId) {
+		baseApiUrl = "http://e-sim.org/apiMilitaryUnitMembers.html?id=" + countryId;
+		baseCountryUrl = "http://primera.e-sim.org/militaryUnitStatistics.html?miltaryUnitStatisticsType=TOTAL_DAMAGE&countryId=";
+		pageEndingUrl = "&page=";
+		countryUrl = baseCountryUrl + countryId + pageEndingUrl;
+		apiUrl = baseApiUrl + countryId;
+	}
+	
+	public ArrayList<MilitaryUnit> getMus() {
+		ArrayList<MilitaryUnit> mus = new ArrayList<MilitaryUnit>();
+		
+		String result = parseMus();
+		
+		return mus;
+	}
+	
+	private String parseMus() {
+		
+		boolean done = false;
+		int counter = 0;
+		while(!done) {
+			String url = countryUrl + 
+			String result = getPage()
+			
+		}
+		
+		String result = getPage()
+	}
+
+}

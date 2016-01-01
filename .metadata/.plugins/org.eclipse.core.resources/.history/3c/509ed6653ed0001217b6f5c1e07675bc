@@ -1,0 +1,96 @@
+package MuDamage;
+
+public class MilitaryUnit implements Comparable<MilitaryUnit>{
+	
+	private int id;
+	private double totalDmg;
+	private double battleDmg;
+	private double t2Dmg;
+	private String name;
+	private HashMap<Integer,Member> members;
+	
+	MilitaryUnit() {
+		id = 0;
+		totalDmg = 0;
+		name = "";
+		battleDmg = 0;
+		t2Dmg = 0;
+	}
+	
+	MilitaryUnit(int id, double dmg, String name) {
+		this.id = id;
+		this.totalDmg = dmg;
+		this.name = name;
+		battleDmg = 0;
+		t2Dmg = 0;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public double getTotalDmg() {
+		return totalDmg;
+	}
+
+	public void addBattleDmg(double dmg) {
+		this.battleDmg += dmg;
+	}
+	
+	public double getBattleDmg() {
+		return battleDmg;
+	}
+	
+	public void addT2Dmg(double dmg) {
+		this.t2Dmg += dmg;
+	}
+	
+	public double getT2Dmg() {
+		return t2Dmg;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+	
+	public int hashCode()
+	{
+		return id;
+	}
+	
+	public String toString() {
+		return name + ", dmg: " + battleDmg + " T2: " + t2Dmg;
+	}
+
+	@Override
+	public int compareTo(MilitaryUnit arg0) {
+		
+		double argDmg = arg0.getBattleDmg();
+		
+		if(argDmg < battleDmg) {
+			return -1;
+		}else if(argDmg > battleDmg) {
+			return 1;
+		}else {
+			// if equal compare total dmg
+			double argTotalDmg = arg0.getTotalDmg();
+			if(argTotalDmg < totalDmg) {
+				return -1;
+			}else if(argTotalDmg > totalDmg) {
+				return 1;
+			}else {
+				return 0;
+			}
+			
+		}
+	}
+
+}

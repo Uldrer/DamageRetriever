@@ -1,0 +1,44 @@
+
+public class MilitaryUnit {
+	
+	private int id;
+	private double dmg;
+	private String name;
+	
+	MilitaryUnit() {
+		id = 0;
+		dmg = 0;
+		name = "";
+	}
+	
+	MilitaryUnit(int id, doubel dmg, String name) {
+		this.id = id;
+		this.dmg = dmg;
+		this.name = name;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public int getDmg() {
+		return dmg;
+	}
+
+	public void setDmg(int dmg) {
+		this.dmg = dmg;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+}
