@@ -20,43 +20,37 @@ import com.google.gson.stream.JsonReader;
 
 public class MuParser extends Parser implements Runnable{
 	
-	private String baseCountryUrl;
-	private String pageEndingUrl;
-	private String muUnitUrl;
-	private String memberUrl;
+	private String memberUrl = "http://primera.e-sim.org/apiMilitaryUnitMembers.html?id=";
+	private String baseMuIdUrl = "http://primera.e-sim.org/apiMilitaryUnitById.html?id=";
 	private final String MEMBER_ERROR = "{\"error\":\"No such military unit in database\"}";
+	private final String MU_ERROR = "{\"error\":\"No military unit with given id\"}";
 	private HashMap<Integer,MilitaryUnit> mus;
 	private Vector<MembersParsedListener> listeners;
 	
 	
 	public MuParser(int countryId) {
-		baseCountryUrl = "http://primera.e-sim.org/militaryUnitStatistics.html?miltaryUnitStatisticsType=TOTAL_DAMAGE&countryId=";
-		pageEndingUrl = "&page=";
-		muUnitUrl = "militaryUnit.html?id=";
-		memberUrl = "http://primera.e-sim.org/apiMilitaryUnitMembers.html?id=";
 		mus = new HashMap<Integer,MilitaryUnit>();
-		mus = parseMusForCountry(mus,countryId);
+		ArrayList<Integer> countryIdList = new ArrayList<Integer>();
+		countryIdList.add(countryId);
+		
+		mus = parseMusForCountry(mus,countryIdList);
 	}
 	
 	public MuParser(int[] countryIds) {
-		baseCountryUrl = "http://primera.e-sim.org/militaryUnitStatistics.html?miltaryUnitStatisticsType=TOTAL_DAMAGE&countryId=";
-		pageEndingUrl = "&page=";
-		muUnitUrl = "militaryUnit.html?id=";
-		memberUrl = "http://primera.e-sim.org/apiMilitaryUnitMembers.html?id=";
 		mus = new HashMap<Integer,MilitaryUnit>();
 		
-		for(int i = 0; i < countryIds.length; i++)
-		{
-			mus = parseMusForCountry(mus,countryIds[i]);
-		}
+		ArrayList<Integer> countryIdList = new ArrayList<Integer>();
+	    for (int index = 0; index < countryIds.length; index++)
+	    {
+	    	countryIdList.add(countryIds[index]);
+	    }
+
+		mus = parseMusForCountry(mus,countryIdList);
+
 	}
-	
+	/*
 	// special for sweden + some norway mus
 	public MuParser(int countryId1, int countryId2) {
-		baseCountryUrl = "http://primera.e-sim.org/militaryUnitStatistics.html?miltaryUnitStatisticsType=TOTAL_DAMAGE&countryId=";
-		pageEndingUrl = "&page=";
-		muUnitUrl = "militaryUnit.html?id=";
-		memberUrl = "http://primera.e-sim.org/apiMilitaryUnitMembers.html?id=";
 		mus = new HashMap<Integer,MilitaryUnit>();
 			
 		mus = parseMusForCountry(mus,countryId1);
@@ -67,81 +61,17 @@ public class MuParser extends Parser implements Runnable{
 		// filter out the ones we want
 		mus.put(551,norwegianMus.get(551)); // norwegian viking,  id = 551
 	}
+	*/
 	
 	public HashMap<Integer,MilitaryUnit> getMus() {
 		return mus;
 	}
 	
-	private HashMap<Integer,MilitaryUnit> parseMusForCountry(HashMap<Integer,MilitaryUnit> mus, int countryId) {
+	
+	private HashMap<Integer,MilitaryUnit> parseMusForCountry(HashMap<Integer,MilitaryUnit> mus, ArrayList<Integer> countryIds) {
 		
-		String countryUrl = baseCountryUrl + countryId + pageEndingUrl;
-		boolean done = false;
-		int counter = 1;
-		while(!done) {
-			String url = countryUrl + counter;
-			String result = getPage(url);
-			
-			if(result.equals("")) {
-				done = true;
-				break;
-			}
-			
-			Document doc = Jsoup.parse(result, url);
-			
-			Elements tables = doc.getElementsByClass("dataTable");
-			
-			if(tables.size() == 0)
-			{
-				// Error
-				System.out.println("Error when parsing MUs for country: " + countryId + ", page: " + counter + ", retrying...");
-				 
-				try {
-					Thread.sleep(25, 0);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				continue;
-			}
-			
-			Element table = tables.get(0);
-			Elements tags = table.getElementsByTag("tr");
-			
-			for (Element link : tags) {
-				
-				if(link.child(0).text().equals("No military units")) {
-					done = true;
-					break;
-				}
-			
-				Element info = link.child(1);
-				String name = info.text();
-				
-				Elements id = info.children();
-				String idInfo = id.attr("href");
-				if(idInfo.contains(muUnitUrl)) {
-					idInfo = idInfo.substring(muUnitUrl.length());
-				}
-				
-				String dmg = link.child(4).text();
-				dmg = dmg.replaceAll("\\D+", "");
-				
-				if(!name.equals("Name")) {
-					MilitaryUnit mu = new MilitaryUnit(Integer.parseInt(idInfo),Double.parseDouble(dmg),name);
-					// fillMuMembers(mu);
-					mus.put(Integer.parseInt(idInfo),mu);
-				}
-				
-			}
-			counter++;
-			try {
-				Thread.sleep(10, 0);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-		}
+		// Loop over mus in api and take out all with correct country id
+		fillCountryMus(mus, countryIds);
 		
 		return mus;
 	}
@@ -157,6 +87,62 @@ public class MuParser extends Parser implements Runnable{
 		
 		fireMembersParsedEvent(done);
 	}
+	
+	private void fillCountryMus(HashMap<Integer,MilitaryUnit> mus, ArrayList<Integer> countryIds) {
+		
+		int counter = 1; // no id 0
+		boolean done = false;
+		while(!done)
+		{
+			String url = baseMuIdUrl + counter;
+			String result = getPage(url);
+			
+			if(result.equals(MU_ERROR)) {
+				System.out.println(" Reached end of mu list. ");
+				done = true;
+				continue;
+			}
+			
+			InputStream in;
+			MuInfo info = null;
+			try {
+				in = new ByteArrayInputStream(result.getBytes("UTF-8"));
+				info = readMuJsonStream(in, counter);
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				System.out.println("first");
+			} catch (com.google.gson.stream.MalformedJsonException e) {
+				// In case primera server doesn't let us open to many pages
+				try {
+					Thread.sleep(2000, 0);
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				//redo try
+				continue;
+				
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				System.out.println("second");
+				System.out.println("result: " + result);
+			}
+			if(info != null && countryIds.contains(info.getCountryId())) {
+				MilitaryUnit mu = new MilitaryUnit(info.getId(),info.getTotalDamage(),info.getName());
+				mus.put(info.getId(), mu);
+			}
+			
+			// increase counter 
+			counter++;
+			
+		}
+		
+		
+		
+	}
+	
 	
 	private void fillMuMembers(MilitaryUnit mu) {
 		String url = memberUrl + mu.getId();
@@ -211,6 +197,15 @@ public class MuParser extends Parser implements Runnable{
 	       reader.close();
 	     }
 	   }
+	
+	private MuInfo readMuJsonStream(InputStream in, int id) throws IOException {
+	     JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
+	     try {
+	       return readMuMessageArray(reader, id);
+	     }finally {
+	       reader.close();
+	     }
+	   }
 
 	private List<MemberInfo> readMessagesArray(JsonReader reader) throws IOException {
 	     List<MemberInfo> messages = new ArrayList<MemberInfo>();
@@ -221,6 +216,13 @@ public class MuParser extends Parser implements Runnable{
 	     }
 	     reader.endArray();
 	     return messages;
+	   }
+	
+	private MuInfo readMuMessageArray(JsonReader reader, int id) throws IOException {
+		 MuInfo message = null;
+		 message = readMuMessage(reader, id);
+		 
+	     return message;
 	   }
 
 	// only parse ids and names
@@ -243,6 +245,30 @@ public class MuParser extends Parser implements Runnable{
 	     reader.endObject();
 	     return new MemberInfo(citizenId, name);
 	   }
+	 
+	// only parse ids and names
+		 private MuInfo readMuMessage(JsonReader reader, int id) throws IOException {
+			 //init
+			 int countryId = 0;
+			 String name ="";
+			 double totalDamage = 0;
+			 
+		     reader.beginObject();
+		     while (reader.hasNext()) {
+		       String info = reader.nextName();
+		       if (info.equals("name")) {
+		    	   name = reader.nextString();
+		       } else if (info.equals("countryId")) {
+		    	   countryId = reader.nextInt();
+		       } else if (info.equals("totalDamage")) {
+		    	   totalDamage = reader.nextDouble();
+		       }else {
+		         reader.skipValue();
+		       }
+		     }
+		     reader.endObject();
+		     return new MuInfo(countryId, name, totalDamage, id);
+		   }
 
 	 public void addMembersParsedListener(MembersParsedListener listener) {
 			if(listeners == null) {
