@@ -36,6 +36,13 @@ public class MuParser extends Parser implements Runnable{
 		mus = parseMusForCountry(mus,countryIdList);
 	}
 	
+	public MuParser(ArrayList<Integer> countryIds, ArrayList<Integer> muIds) {
+		mus = new HashMap<Integer,MilitaryUnit>();
+
+		mus = parseMusForCountry(mus,countryIds, muIds);
+
+	}
+	
 	public MuParser(int[] countryIds) {
 		mus = new HashMap<Integer,MilitaryUnit>();
 		
@@ -48,6 +55,7 @@ public class MuParser extends Parser implements Runnable{
 		mus = parseMusForCountry(mus,countryIdList);
 
 	}
+	
 	/*
 	// special for sweden + some norway mus
 	public MuParser(int countryId1, int countryId2) {
@@ -72,6 +80,20 @@ public class MuParser extends Parser implements Runnable{
 		
 		// Loop over mus in api and take out all with correct country id
 		fillCountryMus(mus, countryIds);
+		
+		return mus;
+	}
+	
+private HashMap<Integer,MilitaryUnit> parseMusForCountry(HashMap<Integer,MilitaryUnit> mus, ArrayList<Integer> countryIds, ArrayList<Integer> muIds) {
+		
+		if(muIds.isEmpty())
+		{
+			fillCountryMus(mus, countryIds);
+		}
+		else
+		{
+			fillCountryMus(mus, countryIds, muIds);
+		}
 		
 		return mus;
 	}
@@ -138,10 +160,53 @@ public class MuParser extends Parser implements Runnable{
 			counter++;
 			
 		}
+	}
+	
+private void fillCountryMus(HashMap<Integer,MilitaryUnit> mus, ArrayList<Integer> countryIds,  ArrayList<Integer> muIds) {
 		
+	for(int i : muIds)
+	{
+		String url = baseMuIdUrl + i;
+		String result = getPage(url);
 		
+		if(result.equals(MU_ERROR)) {
+			System.out.println(" Invalid mu id. ");
+			continue;
+		}
+		
+		InputStream in;
+		MuInfo info = null;
+		try {
+			in = new ByteArrayInputStream(result.getBytes("UTF-8"));
+			info = readMuJsonStream(in, i);
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("first");
+		} catch (com.google.gson.stream.MalformedJsonException e) {
+			// In case primera server doesn't let us open to many pages
+			try {
+				Thread.sleep(2000, 0);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			//redo try
+			continue;
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("second");
+			System.out.println("result: " + result);
+		}
+		if(info != null && countryIds.contains(info.getCountryId())) {
+			MilitaryUnit mu = new MilitaryUnit(info.getId(),info.getTotalDamage(),info.getName());
+			mus.put(info.getId(), mu);
+		}
 		
 	}
+}
 	
 	
 	private void fillMuMembers(MilitaryUnit mu) {

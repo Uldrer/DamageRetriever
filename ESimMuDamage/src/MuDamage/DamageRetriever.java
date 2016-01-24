@@ -22,7 +22,48 @@ public class DamageRetriever implements Runnable, Serializable {
 	private int currentBattleNr;
 	private boolean doneParsingMembers;
 	
+	public DamageRetriever(ArrayList<Integer> countryIds, ArrayList<Integer> muIds) {
+		
+		battleInformation = new HashMap<BattleInfo,HashMap<Integer,MilitaryUnit>>();
+		muParser = new MuParser(countryIds, muIds);
+		mus = muParser.getMus();
+		battleParser = new BattleParser();
+		retrievedResult = "";
+		battleInfos = null;
+		currentBattleNr = 0;
+		battlePercentStep = 1;
+		doneParsingMembers = false;
+		battleParser.addRoundParsedListener(new RoundParsedListener(){
+
+			@Override
+			public void roundParsed(RoundParsedEvent e) {
+				
+				fireProgressEvent(currentBattleNr*battlePercentStep + battlePercentStep*e.getPercent(),ParsingType.BATTLE);
+				
+			}
+			
+		});
+		
+		muParser.addMembersParsedListener(new MembersParsedListener() {
+
+			@Override
+			public void membersParsed(MembersParsedEvent e) {
+				
+				fireProgressEvent(1,ParsingType.MU);
+				mus = muParser.getMus();
+				doneParsingMembers = true;
+				
+			}
+			
+		});
+		
+		// Get mu-member information asynchrously
+		Thread muParsingThread = new Thread(muParser);
+		muParsingThread.start();
+	}
+	
 	public DamageRetriever() {
+		
 		battleInformation = new HashMap<BattleInfo,HashMap<Integer,MilitaryUnit>>();
 		muParser = new MuParser(new int[]{17, 19, 20, 25, 53}); // 26 USA, 25 Mexico, 20 Latvia, 19 Lithuania, 17 Sweden, 43 norway, 53 Estonia, flera MuParser(17,43)
 		mus = muParser.getMus();

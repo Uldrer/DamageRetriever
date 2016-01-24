@@ -58,7 +58,7 @@ public class GUI {
 	private ArrayList<BattleInfo> battles;
 	private Thread retrieveThread;
 	private boolean retrievingData;
-	private final double PROGRAM_VERSION = 0.913;
+	private final double PROGRAM_VERSION = 0.92;
 	private final String PROGRAM_NAME = "MU - Battle Damage Retriever";
 	private final int DMG_LIST_WIDTH = 100;
 	private final int MEMBER_LIST_WIDTH = 120;
@@ -138,8 +138,19 @@ public class GUI {
 //
 //			return;
 //		}
+		
+		ConfigInfo config = new ConfigInfo();
+		String configFile = "config.xml";
+		ConfigLoader configLoader = new ConfigLoader();
+		configLoader.readConfig(configFile, config);
+		
+		if(config.countryIds.isEmpty()) 
+		{
+			System.out.println("No country ids specified in config.xml, exiting.");
+			return;
+		}
 
-		dmgRetriever = new DamageRetriever();
+		dmgRetriever = new DamageRetriever(config.countryIds, config.muIds);
 		battles = new ArrayList<BattleInfo>();
 
 		shell = new Shell();
