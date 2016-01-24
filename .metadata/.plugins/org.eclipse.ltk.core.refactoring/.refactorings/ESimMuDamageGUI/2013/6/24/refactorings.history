@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">
-<refactoring comment="Rename type &apos;application.MuListViewer&apos; to &apos;StringListViewer&apos;&#x0D;&#x0A;- Original project: &apos;ESimMuDamageGUI&apos;&#x0D;&#x0A;- Original element: &apos;application.MuListViewer&apos;&#x0D;&#x0A;- Renamed element: &apos;application.StringListViewer&apos;&#x0D;&#x0A;- Update references to refactored element&#x0D;&#x0A;- Update textual occurrences in comments and strings" description="Rename type &apos;MuListViewer&apos;" flags="589830" id="org.eclipse.jdt.ui.rename.type" input="/src&lt;application{MuListViewer.java[MuListViewer" matchStrategy="1" name="StringListViewer" qualified="false" references="true" similarDeclarations="false" stamp="1371294761939" textual="false" version="1.0"/>
-</session>

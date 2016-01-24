@@ -1,9 +1,0 @@
-
-public class MilitaryUnit {
-	
-	private int id;
-	MilitaryUnit() {
-		
-	}
-
-}

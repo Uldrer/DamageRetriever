@@ -1,9 +1,0 @@
-package MuDamage;
-
-public class Member {
-	
-	public Member(int citizenId) {
-		this.id = citizenId;
-	}
-
-}
